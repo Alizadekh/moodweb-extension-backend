@@ -1,8 +1,5 @@
-import express from "express";
 import OpenAI from "openai";
-import cors from "cors";
 import dotenv from "dotenv";
-import morgan from "morgan";
 
 dotenv.config();
 
@@ -14,24 +11,11 @@ const ALLOWED_MOODS = [
   "Stressed",
   "Angry",
 ];
-const PORT = process.env.PORT || 3000;
-
-const app = express();
 
 const openai = new OpenAI({
   apiKey: process.env.DASHSCOPE_API_KEY,
   baseURL: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
 });
-
-app.use(express.json());
-app.use(
-  cors({
-    origin: "http://localhost:3001",
-    methods: "POST",
-    allowedHeaders: "Content-Type",
-  })
-);
-app.use(morgan("dev"));
 
 async function detectLanguage(text) {
   try {
@@ -157,7 +141,11 @@ async function analyzeEmotion(text) {
   }
 }
 
-app.post("/analyze-mood", async (req, res) => {
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
   try {
     const { userInput } = req.body;
 
@@ -175,27 +163,13 @@ app.post("/analyze-mood", async (req, res) => {
     const mood = await analyzeEmotion(userInput);
     const quote = await getMoodBasedQuote(mood, language);
 
-    res.json({ mood, quote, language });
+    res.status(200).json({ mood, quote, language });
   } catch (error) {
-    console.error("Error in /analyze-mood:", error);
-
+    console.error("Error in /api/index:", error);
     res.status(500).json({
       error: "An internal server error occurred.",
       details:
         process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
-});
-
-app.use((req, res) => {
-  res.status(404).json({ error: "Endpoint not found" });
-});
-
-app.use((err, req, res, next) => {
-  console.error("Global error:", err);
-  res.status(500).json({ error: "Server error" });
-});
-
-app.listen(PORT, () => {
-  console.log(`Server is running at: http://localhost:${PORT}`);
-});
+}
