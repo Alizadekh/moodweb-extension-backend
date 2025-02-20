@@ -1,8 +1,15 @@
 {
   "version": 2,
-  "functions": {
-    "api/analyze-mood.js": {
-      "runtime": "nodejs18.x"
+  "builds": [
+    {
+      "src": "api/analyze-mood.js",
+      "use": "@vercel/node"
     }
-  }
+  ],
+  "routes": [
+    {
+      "src": "/api/analyze-mood",
+      "dest": "api/analyze-mood.js"
+    }
+  ]
 }
