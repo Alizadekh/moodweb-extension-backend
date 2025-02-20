@@ -1,11 +1,11 @@
 {
-  "name": "moodweb-backend",
+  "name": "moodweb-extension-backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Backend for moodweb Chrome extension",
+  "main": "api/analyze-mood.js", 
   "type": "module",
   "scripts": {
-    "start": "node index.js",
+    "start": "node api/analyze-mood.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -14,5 +14,8 @@
   "dependencies": {
     "dotenv": "^16.4.7",
     "openai": "^4.85.1"
+  },
+  "engines": {
+    "node": "18.x"  
   }
 }
