@@ -2,7 +2,7 @@
   "name": "moodweb-extension-backend",
   "version": "1.0.0",
   "description": "Backend for moodweb Chrome extension",
-  "main": "api/analyze-mood.js", 
+  "main": "api/analyze-mood.js",
   "type": "module",
   "scripts": {
     "start": "node api/analyze-mood.js",
@@ -13,9 +13,10 @@
   "license": "ISC",
   "dependencies": {
     "dotenv": "^16.4.7",
-    "openai": "^4.85.1"
+    "express": "^4.21.2",
+    "openai": "^4.85.4"
   },
   "engines": {
-    "node": "18.x"  
+    "node": "18.x"
   }
 }

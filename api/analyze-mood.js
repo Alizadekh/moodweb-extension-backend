@@ -155,6 +155,90 @@ async function analyzeEmotion(text) {
   }
 }
 
+async function getMoodBasedMediaRecommendation(mood, language, userInput) {
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "qwen-plus",
+      messages: [
+        {
+          role: "system",
+          content: `You are a music recommendation assistant. Provide a short, natural, and fluent sentence recommending a specific song that suits the given mood and context (based on user input), including the artist and song name (e.g., "Maybe listen to Emin Sabitoğlu - Sakit Gecə, it might help you relax" or "Bəlkə Emin Sabitoğlu - Sakit Gecə dinləsən, bir az rahatlaya bilərsən"). Avoid irrelevant suggestions like love songs for sadness caused by failure. Use proper grammar and phrasing in the language specified by ${language}. Respond with only the sentence.`,
+        },
+        {
+          role: "user",
+          content: `Recommend a song in ${language} for someone feeling ${mood.toLowerCase()} based on this context: "${userInput}".`,
+        },
+      ],
+      temperature: 0.7,
+      max_tokens: 50,
+    });
+
+    if (
+      !completion.choices ||
+      completion.choices.length === 0 ||
+      !completion.choices[0].message ||
+      !completion.choices[0].message.content
+    ) {
+      console.error(
+        "Invalid response from OpenAI (getMoodBasedMediaRecommendation):",
+        completion
+      );
+      throw new Error(
+        "Invalid response from OpenAI API for media recommendation"
+      );
+    }
+
+    return completion.choices[0].message.content.trim();
+  } catch (error) {
+    console.error("Error in getMoodBasedMediaRecommendation:", error);
+    throw error instanceof Error
+      ? error
+      : new Error("Media recommendation failed");
+  }
+}
+
+async function getMoodBasedActivityRecommendation(mood, language, userInput) {
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "qwen-plus",
+      messages: [
+        {
+          role: "system",
+          content: `You are a supportive wellness assistant. Provide a short, practical, and motivating activity recommendation as a full sentence that suits the given mood and context (based on user input). If the mood is negative (e.g., Sad, Stressed), focus on problem-solving and encouragement (e.g., "You seem sad, maybe planning a new study strategy could lift your spirits" or "Kədərli görünürsən, bəlkə imtahan üçün yeni strategiya düşünsən, bu səni ruhlandırar"). If the mood is positive (e.g., Happy, Excited), boost their motivation further with a goal-oriented suggestion (e.g., "You seem happy, maybe channel this energy into starting a new project" or "Sevincli görünürsən, bəlkə bu enerjini yeni bir layihəyə başlamaq üçün istifadə etsən"). Use proper grammar and natural phrasing in the language specified by ${language}. Mention the mood explicitly. Respond with only the sentence.`,
+        },
+        {
+          role: "user",
+          content: `Recommend an activity in ${language} for someone feeling ${mood.toLowerCase()} based on this context: "${userInput}".`,
+        },
+      ],
+      temperature: 0.7,
+      max_tokens: 80,
+    });
+
+    if (
+      !completion.choices ||
+      completion.choices.length === 0 ||
+      !completion.choices[0].message ||
+      !completion.choices[0].message.content
+    ) {
+      console.error(
+        "Invalid response from OpenAI (getMoodBasedActivityRecommendation):",
+        completion
+      );
+      throw new Error(
+        "Invalid response from OpenAI API for activity recommendation"
+      );
+    }
+
+    return completion.choices[0].message.content.trim();
+  } catch (error) {
+    console.error("Error in getMoodBasedActivityRecommendation:", error);
+    throw error instanceof Error
+      ? error
+      : new Error("Activity recommendation failed");
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method === "OPTIONS") {
     res.setHeader(
@@ -200,6 +284,16 @@ export default async function handler(req, res) {
     const language = await detectLanguage(userInput);
     const mood = await analyzeEmotion(userInput);
     const quote = await getMoodBasedQuote(mood, language);
+    const mediaRecommendation = await getMoodBasedMediaRecommendation(
+      mood,
+      language,
+      userInput
+    );
+    const activityRecommendation = await getMoodBasedActivityRecommendation(
+      mood,
+      language,
+      userInput
+    );
 
     res.setHeader(
       "Access-Control-Allow-Origin",
@@ -209,6 +303,8 @@ export default async function handler(req, res) {
       mood,
       quote,
       language,
+      mediaRecommendation,
+      activityRecommendation,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
@@ -224,3 +320,5 @@ export default async function handler(req, res) {
     });
   }
 }
+
+console.log("To test locall: http://localhost:3000/api/analyze-mood");
